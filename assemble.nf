@@ -23,57 +23,59 @@
 
 */
 
-params.sample = "example"
-params.r1 = "${params.sample}_R1.fq.gz"
-params.r2 = "${params.sample}_R2.fq.gz"
+params.experiment = "tutorial"
+raw = "${params.experiment}/raw"
+intermediate = "${params.experiment}/intermediate"
+fine = "${params.experiment}/final"
 
-sample = Channel.from(params.sample)
-fastq = Channel.from(file(params.r1), file(params.r2))
+raw1 = "${raw}/**_R1*{fastq,fq,fastq.gz,fq.gz}"
+raw2 = "${raw}/**_R2*{fastq,fq,fastq.gz,fq.gz}"
+reads1 = Channel.fromPath(raw1).ifEmpty { error "cannot find any reads matching ${raw1}" }.map { path -> tuple(sample(path), path) }
+reads2 = Channel.fromPath(raw2).ifEmpty { error "cannot find any reads matching ${raw2}" }.map { path -> tuple(sample(path), path) }
+readPairs = reads1.phase(reads2).map{ read1, read2 -> [ read1[0], read1[1], read2[1] ] }
 
-process fastqToSsake {    
-    input:
-        val s from sample
-        file r1 from fastq
-        file r2 from fastq
-    output:
-        file "${s}.ssake.fa.gz" into ssakeFasta
+process fastqToSsake {
+  input:
+    set s, file(r1), file(r2) from readPairs
+  output:
+    set s, file("${s}.ssake.fa.gz") into ssakeFasta
 
-    """
-    ngs-fastq-to-ssake -1 ${r1} -2 ${r2} -o ${s}.ssake.fa.gz --insert-size 500
-    """
+  """
+  ngs-fastq-to-ssake -1 ${r1} -2 ${r2} -o ${s}.ssake.fa.gz --insert-size 500
+  """
 }
-
-sample = Channel.from(params.sample)
 
 process reformat {
-    input:
-        val s from sample
-        file f from ssakeFasta
-    output:
-        file "${s}.ssake.reformatted.fa.gz" into reformatted
+  input:
+    set s, file(f) from ssakeFasta
+  output:
+    set s, file("${s}.ssake.reformatted.fa.gz") into reformatted
 
-    """
-    gzcat $f | sed -e 's/a/A/g' -e 's/c/C/g' -e 's/g/G/g' -e 's/t/T/g' -e 's/n/N/g' -e 's/^>.*/>reformatted:500/' | gzip -c > ${s}.ssake.reformatted.fa.gz
-    """
+  """
+  zcat $f | sed -e 's/a/A/g' -e 's/c/C/g' -e 's/g/G/g' -e 's/t/T/g' -e 's/n/N/g' -e 's/^>.*/>reformatted:500/' | gzip -c > ${s}.ssake.reformatted.fa.gz
+  """
 }
 
-sample = Channel.from(params.sample)
-
 process ssake {
-    input:
-        val s from sample
-        file f from reformatted
-    output:
-        file "${s}.ssake.d" into assembled
+  input:
+    set s, file(f) from reformatted
+  output:
+    set s, file("${s}.ssake.d") into assembled
 
-    """
-    gunzip -c ${f} > ${f}.tmp
-    mkdir ${s}.ssake.d
-    SSAKE -f ${f}.tmp -b ${s}.ssake.d/${s} -w 1 -h 1 -p 1 -m 50 -o 30 -c 1 -e 0.90 -k 4 -a 0.1 -x 20
-    rm ${f}.tmp
-    """
+  """
+  gunzip -c ${f} > ${f}.tmp
+  mkdir ${s}.ssake.d
+  SSAKE -f ${f}.tmp -b ${s}.ssake.d/${s} -w 1 -h 1 -p 1 -m 50 -o 30 -c 1 -e 0.90 -k 4 -a 0.1 -x 20
+  rm ${f}.tmp
+  """
 }
 
 assembled.subscribe() {
-    println "assembled $it"
+  println "assembled $it"
+}
+
+def sample(Path path) {
+  def name = path.getFileName().toString()
+  int start = Math.max(0, name.lastIndexOf('/'))
+  return name.substring(start, name.indexOf("_R"))
 }
