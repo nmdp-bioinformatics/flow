@@ -105,7 +105,7 @@ process interleave {
     set s, file("${s}.paired.fq.gz") into interleavedReads
 
   """
-  ngs-interleave-fastq3 -1 ${r1} -2 ${r2} -p ${s}.paired.fq.gz -u ${s}.unpaired.fq.gz
+  ngs-interleave-fastq -1 ${r1} -2 ${r2} -p ${s}.paired.fq.gz -u ${s}.unpaired.fq.gz
   """
 }
 
