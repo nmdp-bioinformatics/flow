@@ -42,7 +42,7 @@ process fastqToSsake {
   input:
     set s, file(r1), file(r2) from readPairs
   output:
-    set s, file("${s}.ssake.fa.gz") into ssakeFasta
+    set s, file {"${s}.ssake.fa.gz"} into ssakeFasta
 
   """
   ngs-fastq-to-ssake -1 ${r1} -2 ${r2} -o ${s}.ssake.fa.gz --insert-size 500
@@ -53,7 +53,7 @@ process reformat {
   input:
     set s, file(f) from ssakeFasta
   output:
-    set s, file("${s}.ssake.reformatted.fa.gz") into reformatted
+    set s, file {"${s}.ssake.reformatted.fa.gz"} into reformatted
 
   """
   zcat $f | sed -e 's/a/A/g' -e 's/c/C/g' -e 's/g/G/g' -e 's/t/T/g' -e 's/n/N/g' -e 's/^>.*/>reformatted:500/' | gzip -c > ${s}.ssake.reformatted.fa.gz
@@ -64,7 +64,7 @@ process ssake {
   input:
     set s, file(f) from reformatted
   output:
-    set s, file("${s}.ssake.d/${s}.contigs") into contigs
+    set s, file {"${s}.ssake.d/${s}.contigs"} into contigs
 
   """
   gunzip -c ${f} > ${f}.tmp
@@ -80,8 +80,8 @@ process alignContigs {
   input:
     set s, file(f) from contigs
   output:
-    set s, file("${s}.contigs.bwa.sorted.bam") into contigsBam
-    set s, file("${s}.contigs.bwa.sorted.vcf.gz") into contigsVcf
+    set s, file {"${s}.contigs.bwa.sorted.bam"} into contigsBam
+    set s, file {"${s}.contigs.bwa.sorted.vcf.gz"} into contigsVcf
 
   """
   bwa bwasw -b 1 ${ref} ${f} | samtools view -hub - | samtools sort -l 0 -T ${s}.contigs.bwa.tmp -o ${s}.contigs.bwa.sorted.bam
@@ -102,7 +102,7 @@ process interleave {
   input:
     set s, file(r1), file(r2) from alignmentReadPairs
   output:
-    set s, file("${s}.paired.fq.gz") into interleavedReads
+    set s, file {"${s}.paired.fq.gz"} into interleavedReads
 
   """
   ngs-interleave-fastq -1 ${r1} -2 ${r2} -p ${s}.paired.fq.gz -u ${s}.unpaired.fq.gz
@@ -113,8 +113,8 @@ process alignReads {
   input:
     set s, file(r) from interleavedReads
   output:
-    set s, file("${s}.reads.bwa.sorted.bam") into readsBam
-    set s, file("${s}.reads.bwa.sorted.vcf.gz") into readsVcf
+    set s, file {"${s}.reads.bwa.sorted.bam"} into readsBam
+    set s, file {"${s}.reads.bwa.sorted.vcf.gz"} into readsVcf
 
   """
   bwa mem ${ref} -a -p ${r} | samtools view -hub - | samtools sort -l 0 -T ${s}.reads.bwa.tmp -o ${s}.reads.bwa.sorted.bam
