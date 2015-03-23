@@ -15,7 +15,6 @@ $ curl -fsSL get.nextflow.io | bash
       last modified 18-03-2015 09:11 UTC (04:11 CDT)
       http://nextflow.io
 
-
 Nextflow installation completed.
 ```
 
