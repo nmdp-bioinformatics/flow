@@ -4,7 +4,7 @@ flow
 Consensus assembly, variant calling, and allele interpretation workflow.
 
 
-###Hacking ngs
+###Hacking flow
 
 Install [Nextflow](http://www.nextflow.io/)
 ```bash
@@ -20,7 +20,7 @@ Nextflow installation completed.
 
 Run assembly
 ```bash
-$ ./nextflow assemble.nf 
+$ ./nextflow main.nf
 N E X T F L O W  ~  version 0.12.5
 [warm up] executor > local
 [94/cfa72d] Submitted process > fastqToSsake (1)
@@ -38,7 +38,7 @@ contigs vcf [example, work/2e/a62ff3adc7c7d73845fa8c58c47f5f/example.contigs.bwa
 Use [SLURM](https://computing.llnl.gov/linux/slurm/) executor
 ```bash
 $ echo "process.executor = 'slurm'" > netflow.config
-$ ./nextflow assemble.nf 
+$ ./nextflow main.nf
 N E X T F L O W  ~  version 0.12.5
 [warm up] executor > slurm
 [ab/8b26c9] Submitted process > interleave (1)
