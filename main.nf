@@ -69,7 +69,7 @@ process ssake {
   """
   gunzip -c ${f} > ${f}.tmp
   mkdir ${s}.ssake.d
-  SSAKE -f ${f}.tmp -b ${s}.ssake.d/${s} -w 1 -h 1 -p 1 -m 50 -o 30 -c 1 -e 0.90 -k 4 -a 0.1 -x 20
+  SSAKE -f ${f}.tmp -b ${s}.ssake.d/${s} -w 1 -h 1 -p 1 -m 50 -o 30 -c 1 -e 0.90 -k 4 -a 0.1 -x 20 > /dev/null
   rm ${f}.tmp
   """
 }
