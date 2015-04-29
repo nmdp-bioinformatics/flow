@@ -23,8 +23,8 @@
 
 */
 
-params.experiment = "tutorial"
-params.reference = "tutorial/ref/chr6-ex.fa"
+params.experiment = "${baseDir}/tutorial"
+params.reference = "${baseDir}/tutorial/ref/chr6-ex.fa"
 
 raw = "${params.experiment}/raw"
 intermediate = "${params.experiment}/intermediate"
