@@ -26,12 +26,11 @@
 params.experiment = "${baseDir}/tutorial"
 params.reference = "${baseDir}/tutorial/ref/chr6-ex.fa"
 
-raw = "${params.experiment}/raw"
-intermediate = "${params.experiment}/intermediate"
-fine = "${params.experiment}/final"
+rawDir = "${params.experiment}/raw"
+finalDir = "${params.experiment}/final"
 
-raw1 = "${raw}/**_R1*{fastq,fq,fastq.gz,fq.gz}"
-raw2 = "${raw}/**_R2*{fastq,fq,fastq.gz,fq.gz}"
+raw1 = "${rawDir}/**_R1*{fastq,fq,fastq.gz,fq.gz}"
+raw2 = "${rawDir}/**_R2*{fastq,fq,fastq.gz,fq.gz}"
 reads1 = Channel.fromPath(raw1).ifEmpty { error "cannot find any reads matching ${raw1}" }.map { path -> tuple(sample(path), path) }
 reads2 = Channel.fromPath(raw2).ifEmpty { error "cannot find any reads matching ${raw2}" }.map { path -> tuple(sample(path), path) }
 
@@ -80,6 +79,7 @@ process alignContigs {
   input:
     set s, file(f) from contigs
   output:
+    set s, file {"${f}"} into contigsFasta
     set s, file {"${s}.contigs.bwa.sorted.bam"} into contigsBam
     set s, file {"${s}.contigs.bwa.sorted.vcf.gz"} into contigsVcf
 
@@ -90,12 +90,31 @@ process alignContigs {
   """
 }
 
-contigsBam.subscribe() {
-  println "aligned contigs $it"
+process copyContigsBam {
+  input:
+    set s, file(f) from contigsBam
+
+  """
+  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
+  """
 }
 
-contigsVcf.subscribe() {
-  println "contigs vcf $it"
+process copyContigsFasta {
+  input:
+    set s, file(f) from contigsFasta
+
+  """
+  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
+  """
+}
+
+process copyContigsVcf {
+  input:
+    set s, file(f) from contigsVcf
+
+  """
+  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
+  """
 }
 
 process interleave {
@@ -123,12 +142,22 @@ process alignReads {
   """
 }
 
-readsBam.subscribe() {
-  println "aligned reads $it"
+process copyReadsBam {
+  input:
+    set s, file(f) from readsBam
+
+  """
+  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
+  """
 }
 
-readsVcf.subscribe() {
-  println "reads vcf $it"
+process copyReadsVcf {
+  input:
+    set s, file(f) from readsVcf
+
+  """
+  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
+  """
 }
 
 def sample(Path path) {
