@@ -68,17 +68,19 @@ process ssake {
   """
   gunzip -c ${f} > ${f}.tmp
   mkdir ${s}.ssake.d
-  wrap_timeout() {
-    timeout \$*
-    status=\$?
-    if [ \$status -eq 124 ] ; then
-      echo process timed out
-      return 0
-    fi
+  cat >.timeout.sh <<'EOF'
+  timeout \$*
+  status=\$?
+  if [ \$status -eq 124 ] ; then
+    echo process timed out
+    exit 0
+  elif [ \$status -ne 0 ] ; then
     echo process returned error: \$status
-    return \$status
-  }
-  wrap_timeout 4h SSAKE -f ${f}.tmp -b ${s}.ssake.d/${s} -w 1 -h 1 -p 1 -m 50 -o 30 -c 1 -e 0.90 -k 4 -a 0.1 -x 20 > /dev/null
+  fi
+  exit \$status
+  EOF
+  chmod ugo+x .timeout.sh
+  ./.timeout.sh 4h SSAKE -f ${f}.tmp -b ${s}.ssake.d/${s} -w 1 -h 1 -p 1 -m 50 -o 30 -c 1 -e 0.90 -k 4 -a 0.1 -x 20 > /dev/null
   rm ${f}.tmp
   """
 }
