@@ -1,7 +1,7 @@
 flow
 ====
 
-Consensus assembly, variant calling, and allele interpretation workflow.
+Consensus assembly and variant calling workflow.
 
 
 ###Hacking flow
@@ -11,46 +11,68 @@ Install [Nextflow](http://www.nextflow.io/)
 $ curl -fsSL get.nextflow.io | bash 
 
       N E X T F L O W
-      Version 0.12.5 build 2800
-      last modified 18-03-2015 09:11 UTC (04:11 CDT)
+      Version 0.13.5 build 2985
+      last modified 07-05-2015 12:30 UTC (07:30 CDT)
       http://nextflow.io
 
 Nextflow installation completed.
 ```
 
-Run assembly
+Run workflow locally (requires workflow dependencies to be installed locally)
 ```bash
-$ ./nextflow main.nf
-N E X T F L O W  ~  version 0.12.5
+$ ./nextflow run main.nf 
+N E X T F L O W  ~  version 0.13.5
+Launching main.nf
 [warm up] executor > local
-[94/cfa72d] Submitted process > fastqToSsake (1)
-[bb/73c436] Submitted process > interleave (1)
-[48/019fbb] Submitted process > alignReads (1)
-[2e/491ce1] Submitted process > reformat (1)
-[f6/3c6d74] Submitted process > ssake (1)
-reads vcf [example, work/48/019fbbf84290466e2223373c9a3af3/example.reads.bwa.sorted.vcf.gz]
-aligned reads [example, work/48/019fbbf84290466e2223373c9a3af3/example.reads.bwa.sorted.bam]
-[2e/a62ff3] Submitted process > alignContigs (1)
-aligned contigs [example, work/2e/a62ff3adc7c7d73845fa8c58c47f5f/example.contigs.bwa.sorted.bam]
-contigs vcf [example, work/2e/a62ff3adc7c7d73845fa8c58c47f5f/example.contigs.bwa.sorted.vcf.gz]
+[22/8312f0] Submitted process > interleave (1)
+[9d/3cfe76] Submitted process > fastqToSsake (1)
+[77/c60d3b] Submitted process > alignReads (1)
+[90/395c41] Submitted process > reformat (1)
+[ad/3eae51] Submitted process > ssake (1)
+[13/6d2035] Submitted process > copyReadsBam (1)
+[73/c3c8ba] Submitted process > copyReadsVcf (1)
+[ab/32323b] Submitted process > alignContigs (1)
+[82/ca7732] Submitted process > copyContigsFasta (1)
+[fd/6e470f] Submitted process > copyContigsBam (1)
+[21/cc12ce] Submitted process > copyContigsVcf (1)
 ```
 
-Use [SLURM](https://computing.llnl.gov/linux/slurm/) executor
+Run workflow locally using Docker image (requires only Docker to be installed locally)
+```bash
+$ ./nextflow run main.nf -with-docker nmdpbioinformatics/docker-flow:1.0-snapshot-2
+N E X T F L O W  ~  version 0.13.5
+Launching main.nf
+[warm up] executor > local
+[71/ab4304] Submitted process > fastqToSsake (1)
+[fb/b1bf04] Submitted process > interleave (1)
+[0f/f5049d] Submitted process > reformat (1)
+[a0/68b5e2] Submitted process > alignReads (1)
+[40/b8f680] Submitted process > ssake (1)
+[f7/459a41] Submitted process > copyReadsBam (1)
+[16/b40f02] Submitted process > copyReadsVcf (1)
+[37/7f3f64] Submitted process > alignContigs (1)
+[35/96759b] Submitted process > copyContigsBam (1)
+[de/12b07b] Submitted process > copyContigsFasta (1)
+[75/0deafc] Submitted process > copyContigsVcf (1)
+```
+
+Use [SLURM](https://computing.llnl.gov/linux/slurm/) executor, with or without Docker
 ```bash
 $ echo "process.executor = 'slurm'" > nextflow.config
-$ ./nextflow main.nf
-N E X T F L O W  ~  version 0.12.5
+$ ./nextflow run main.nf -with-docker nmdpbioinformatics/docker-flow:1.0-snapshot-2
+N E X T F L O W  ~  version 0.13.5
 [warm up] executor > slurm
-[ab/8b26c9] Submitted process > interleave (1)
-[51/19b1c5] Submitted process > fastqToSsake (1)
-[38/f27ca8] Submitted process > alignReads (1)
-aligned reads [example, work/38/f27ca8187337e548ec11c9d5003e99/example.reads.bwa.sorted.bam]
-reads vcf [example, work/38/f27ca8187337e548ec11c9d5003e99/example.reads.bwa.sorted.vcf.gz]
-[d9/0ef973] Submitted process > reformat (1)
-[61/4fae5f] Submitted process > ssake (1)
-[81/e19095] Submitted process > alignContigs (1)
-aligned contigs [example, work/81/e19095c5509793edf9d2047ffc4ecf/example.contigs.bwa.sorted.bam]
-contigs vcf [example, work/81/e19095c5509793edf9d2047ffc4ecf/example.contigs.bwa.sorted.vcf.gz]
+[be/99c179] Submitted process > interleave (1)
+[d4/f1f89d] Submitted process > fastqToSsake (1)
+[9f/011a75] Submitted process > alignReads (1)
+[ff/2f03d9] Submitted process > reformat (1)
+[60/996a78] Submitted process > ssake (1)
+[86/acdaab] Submitted process > copyReadsBam (1)
+[ac/2897ed] Submitted process > copyReadsVcf (1)
+[75/7f9983] Submitted process > alignContigs (1)
+[16/664353] Submitted process > copyContigsBam (1)
+[8e/82be94] Submitted process > copyContigsFasta (1)
+[27/a1c267] Submitted process > copyContigsVcf (1)
 ```
 
 Note that when using the SLURM executor, the Nextflow working directory must be mounted on a volume shared to all SLURM nodes.
