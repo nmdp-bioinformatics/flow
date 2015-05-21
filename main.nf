@@ -26,8 +26,18 @@
 params.experiment = "${baseDir}/tutorial"
 params.reference = "${baseDir}/tutorial/ref/chr6-ex.fa"
 
-rawDir = "${params.experiment}/raw"
-finalDir = "${params.experiment}/final"
+ref = file("${params.reference}")
+
+// bwa index files
+refAmb = file("${ref}.amb")
+refAnn = file("${ref}.ann")
+refBwt = file("${ref}.bwt")
+refFai = file("${ref}.fai")
+refPac = file("${ref}.pac")
+refSa = file("${ref}.sa")
+
+rawDir = file("${params.experiment}/raw")
+finalDir = file("${params.experiment}/final")
 
 raw1 = "${rawDir}/**_R1*{fastq,fq,fastq.gz,fq.gz}"
 raw2 = "${rawDir}/**_R2*{fastq,fq,fastq.gz,fq.gz}"
@@ -83,10 +93,15 @@ process ssake {
   """
 }
 
-ref = file("${params.reference}")
-
 process alignContigs {
   input:
+    file ref
+    file refAmb
+    file refAnn
+    file refBwt
+    file refFai
+    file refPac
+    file refSa
     set s, file(f) from contigs
   output:
     set s, file {"${f}"} into contigsFasta
@@ -102,6 +117,7 @@ process alignContigs {
 
 process copyContigsBam {
   input:
+    file finalDir
     set s, file(f) from contigsBam
 
   """
@@ -111,6 +127,7 @@ process copyContigsBam {
 
 process copyContigsFasta {
   input:
+    file finalDir
     set s, file(f) from contigsFasta
 
   """
@@ -120,6 +137,7 @@ process copyContigsFasta {
 
 process copyContigsVcf {
   input:
+    file finalDir
     set s, file(f) from contigsVcf
 
   """
@@ -140,6 +158,13 @@ process interleave {
 
 process alignReads {
   input:
+    file ref
+    file refAmb
+    file refAnn
+    file refBwt
+    file refFai
+    file refPac
+    file refSa
     set s, file(r) from interleavedReads
   output:
     set s, file {"${s}.reads.bwa.sorted.bam"} into readsBam
@@ -154,6 +179,7 @@ process alignReads {
 
 process copyReadsBam {
   input:
+    file finalDir
     set s, file(f) from readsBam
 
   """
@@ -163,6 +189,7 @@ process copyReadsBam {
 
 process copyReadsVcf {
   input:
+    file finalDir
     set s, file(f) from readsVcf
 
   """
