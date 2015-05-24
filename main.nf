@@ -117,35 +117,6 @@ process alignContigs {
   """
 }
 
-process copyContigsBam {
-  input:
-    file finalDir
-    set s, file(f) from contigsBam
-
-  """
-  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
-  """
-}
-
-process copyContigsFasta {
-  input:
-    file finalDir
-    set s, file(f) from contigsFasta
-
-  """
-  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
-  """
-}
-
-process copyContigsVcf {
-  input:
-    file finalDir
-    set s, file(f) from contigsVcf
-
-  """
-  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
-  """
-}
 
 process interleave {
   input:
@@ -179,24 +150,18 @@ process alignReads {
   """
 }
 
-process copyReadsBam {
-  input:
-    file finalDir
-    set s, file(f) from readsBam
 
-  """
-  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
-  """
-}
+finalDir.mkdirs()
+readsBam.subscribe { s, file -> copy('readsBam',s,file) }
+readsVcf.subscribe { s, file -> copy('readsVcf',s,file) }
+contigsVcf.subscribe { s, file -> copy('configVcf',s,file) }
+contigsBam.subscribe { s, file -> copy('contigsBam',s,file) }
+contigsFasta.subscribe { s, file -> copy('contigsFasta',s,file) }
 
-process copyReadsVcf {
-  input:
-    file finalDir
-    set s, file(f) from readsVcf
 
-  """
-  umask 0000 && mkdir -p ${finalDir} && cp ${f} ${finalDir}
-  """
+def copy ( type, s, file ) { 
+  log.info "Copying ${file.name} ($type) into: $finalDir"
+  file.copyTo(finalDir)
 }
 
 def sample(Path path) {
