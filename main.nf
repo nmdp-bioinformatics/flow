@@ -48,6 +48,8 @@ alignmentReadPairs = Channel.create()
 readPairs = reads1.phase(reads2).map{ read1, read2 -> [ read1[0], read1[1], read2[1] ] }.tap(alignmentReadPairs)
 
 process fastqToSsake {
+  tag { s }
+   	
   input:
     set s, file(r1), file(r2) from readPairs
   output:
@@ -59,6 +61,8 @@ process fastqToSsake {
 }
 
 process reformat {
+  tag { s }
+  
   input:
     set s, file(f) from ssakeFasta
   output:
@@ -70,6 +74,8 @@ process reformat {
 }
 
 process ssake {
+  tag { s }
+  
   input:
     set s, file(f) from reformatted
   output:
@@ -96,6 +102,8 @@ process ssake {
 }
 
 process alignContigs {
+  tag { s }
+  
   input:
     file ref
     file refAmb
@@ -148,6 +156,8 @@ process copyContigsVcf {
 }
 
 process interleave {
+  tag { s }
+  
   input:
     set s, file(r1), file(r2) from alignmentReadPairs
   output:
@@ -159,6 +169,8 @@ process interleave {
 }
 
 process alignReads {
+  tag { s }
+  
   input:
     file ref
     file refAmb
