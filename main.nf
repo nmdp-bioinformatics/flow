@@ -42,7 +42,7 @@ readPairs = reads1.phase(reads2).map{ read1, read2 -> [ read1[0], read1[1], read
 
 process fastqToSsake {
   tag { s }
-   	
+
   input:
     set s, file(r1), file(r2) from readPairs
   output:
@@ -55,7 +55,7 @@ process fastqToSsake {
 
 process reformat {
   tag { s }
-  
+
   input:
     set s, file(f) from ssakeFasta
   output:
@@ -68,7 +68,7 @@ process reformat {
 
 process ssake {
   tag { s }
-  
+
   input:
     set s, file(f) from reformatted
   output:
@@ -96,7 +96,7 @@ process ssake {
 
 process alignContigs {
   tag { s }
-  
+
   input:
     file '*' from refIndices 
     set s, file(f) from contigs
@@ -112,10 +112,9 @@ process alignContigs {
   """
 }
 
-
 process interleave {
   tag { s }
-  
+
   input:
     set s, file(r1), file(r2) from alignmentReadPairs
   output:
@@ -128,7 +127,7 @@ process interleave {
 
 process alignReads {
   tag { s }
-  
+
   input:
     file '*' from refIndices
     set s, file(r) from interleavedReads
@@ -143,16 +142,14 @@ process alignReads {
   """
 }
 
-
 finalDir.mkdirs()
-readsBam.subscribe { s, file -> copy('readsBam',s,file) }
-readsVcf.subscribe { s, file -> copy('readsVcf',s,file) }
-contigsVcf.subscribe { s, file -> copy('configVcf',s,file) }
-contigsBam.subscribe { s, file -> copy('contigsBam',s,file) }
-contigsFasta.subscribe { s, file -> copy('contigsFasta',s,file) }
+readsBam.subscribe { s, file -> copy('readsBam', s, file) }
+readsVcf.subscribe { s, file -> copy('readsVcf', s, file) }
+contigsVcf.subscribe { s, file -> copy('configVcf', s, file) }
+contigsBam.subscribe { s, file -> copy('contigsBam', s, file) }
+contigsFasta.subscribe { s, file -> copy('contigsFasta', s, file) }
 
-
-def copy ( type, s, file ) { 
+def copy (type, s, file) { 
   log.info "Copying ${file.name} ($type) into: $finalDir"
   file.copyTo(finalDir)
 }
