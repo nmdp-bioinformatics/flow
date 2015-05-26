@@ -26,15 +26,8 @@
 params.experiment = "${baseDir}/tutorial"
 params.reference = "${baseDir}/tutorial/ref/chr6-ex.fa"
 
-ref = file("${params.reference}")
-
-// bwa index files
-refAmb = file("${ref}.amb")
-refAnn = file("${ref}.ann")
-refBwt = file("${ref}.bwt")
-refFai = file("${ref}.fai")
-refPac = file("${ref}.pac")
-refSa = file("${ref}.sa")
+refName = file(params.reference).name
+refIndices = Channel.fromPath("${params.reference}*").toList()
 
 rawDir = file("${params.experiment}/raw")
 finalDir = file("${params.experiment}/final")
@@ -105,13 +98,7 @@ process alignContigs {
   tag { s }
   
   input:
-    file ref
-    file refAmb
-    file refAnn
-    file refBwt
-    file refFai
-    file refPac
-    file refSa
+    file '*' from refIndices 
     set s, file(f) from contigs
   output:
     set s, file {"${f}"} into contigsFasta
@@ -119,9 +106,9 @@ process alignContigs {
     set s, file {"${s}.contigs.bwa.sorted.vcf.gz"} into contigsVcf
 
   """
-  bwa bwasw -b 1 ${ref} ${f} | samtools view -hub - | samtools sort -l 0 -T ${s}.contigs.bwa.tmp -o ${s}.contigs.bwa.sorted.bam
+  bwa bwasw -b 1 ${refName} ${f} | samtools view -hub - | samtools sort -l 0 -T ${s}.contigs.bwa.tmp -o ${s}.contigs.bwa.sorted.bam
   samtools index ${s}.contigs.bwa.sorted.bam
-  samtools mpileup -RB -C 0 -Q 0 -f ${ref} ${s}.contigs.bwa.sorted.bam -v -u | gzip -c > ${s}.contigs.bwa.sorted.vcf.gz
+  samtools mpileup -RB -C 0 -Q 0 -f ${refName} ${s}.contigs.bwa.sorted.bam -v -u | gzip -c > ${s}.contigs.bwa.sorted.vcf.gz
   """
 }
 
@@ -172,22 +159,16 @@ process alignReads {
   tag { s }
   
   input:
-    file ref
-    file refAmb
-    file refAnn
-    file refBwt
-    file refFai
-    file refPac
-    file refSa
+    file '*' from refIndices
     set s, file(r) from interleavedReads
   output:
     set s, file {"${s}.reads.bwa.sorted.bam"} into readsBam
     set s, file {"${s}.reads.bwa.sorted.vcf.gz"} into readsVcf
 
   """
-  bwa mem ${ref} -a -p ${r} | samtools view -hub - | samtools sort -l 0 -T ${s}.reads.bwa.tmp -o ${s}.reads.bwa.sorted.bam
+  bwa mem ${refName} -a -p ${r} | samtools view -hub - | samtools sort -l 0 -T ${s}.reads.bwa.tmp -o ${s}.reads.bwa.sorted.bam
   samtools index ${s}.reads.bwa.sorted.bam
-  samtools mpileup -f ${ref} ${s}.reads.bwa.sorted.bam -v -u | gzip -c > ${s}.reads.bwa.sorted.vcf.gz
+  samtools mpileup -f ${refName} ${s}.reads.bwa.sorted.bam -v -u | gzip -c > ${s}.reads.bwa.sorted.vcf.gz
   """
 }
 
